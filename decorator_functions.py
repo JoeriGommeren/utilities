@@ -73,6 +73,9 @@ slow_function(a,b)
 
 
 
+
+
+
 def run_three_times(func): 
     """Run the inner function x times"""  
     def wrapper(*args, **kwargs): 
@@ -86,4 +89,46 @@ def print_sum(a, b):
     print(a + b)  
 
 print_sum(3, 5)
+
+
+
+
+
+
+
+
+
+
+from functools import wraps
+import time
+import threading
+
+def timeout(n_seconds): 
+    def decorator(func): 
+        @wraps(func) 
+        def wrapper(*args, **kwargs): 
+            # Define a timeout function to raise a TimeoutError
+            def raise_timeout():
+                raise TimeoutError(f"Function '{func.__name__}' timed out after {n_seconds} seconds.")
+
+            # Create a timer that calls raise_timeout after n_seconds
+            timer = threading.Timer(n_seconds, raise_timeout)
+            timer.start()  # Start the timer
+            
+            try: 
+                # Call the decorated function
+                return func(*args, **kwargs) 
+            finally: 
+                # Cancel the timer if the function finishes in time
+                timer.cancel()
+        
+        return wrapper 
+    return decorator 
+
+@timeout(5) 
+def print_sum(a, b):
+    time.sleep(6)  # Simulate a long operation (this will trigger the timeout)
+    print(a + b)
+
+print_sum(3, 4)
 
